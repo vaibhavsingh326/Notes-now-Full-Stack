@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Note</title>
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+    <h1 class="font-bold text-3xl font-mono text-slate-900 text-center">Edit Note</h1>
+
+    <form class="form border-2 border-slate-700 rounded-md w-60 gap-2 m-auto p-2 flex flex-col">
+        <input class="border-[1px] rounded-md p-1 border-gray-500" type="text" name="title" id="title" placeholder="title" required>
+        <textarea name="note" id="body" cols="30" rows="10" placeholder="write your note..." class="border-[1px] rounded-md p-1 border-gray-500"></textarea>
+        <input class="border-[1px] bg-slate-800 text-white rounded-md p-1 border-gray-500" type="submit" value="Edit Note">
+    </form>
+    
+</body>
+<script>
+    // const id =window.location.search.split('=')[1];
+    // console.log(id);
+    const form = document.querySelector('form');
+    form.addEventListener('submit', async (e)=>{
+        e.preventDefault();
+        const title = document.querySelector('#title').value;
+        const body = document.querySelector('#body').value;
+        const payload = {title,body};
+        console.log(payload);
+        const id = window.location.search.split('=')[1];
+        
+        fetch(`https://notes-now.onrender.com/notes/${id}`,{
+            method:'PATCH',  
+            headers:{
+                'Content-Type':'application/json',
+                authorization:`Bearer ${localStorage.getItem('token')}`
+
+            },
+            body:JSON.stringify(payload),
+
+        }).then((res)=>{
+            return res.json();
+        }).then((data)=>{
+            console.log(data);
+            window.location.href = "./index.html"
+        }).catch((err)=>{
+            console.log(err);
+        })
+    })
+</script>
+</html>

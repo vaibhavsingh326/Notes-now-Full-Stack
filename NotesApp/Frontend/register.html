@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User-Register</title>
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body class="h-full">
+
+    <h1 class="font-bold text-3xl font-mono text-slate-900 text-center">Register</h1>
+
+    <form class="form border-2 border-slate-700 rounded-md w-60 gap-2 m-auto p-2 flex flex-col">
+        <input class="border-[1px] rounded-md p-1 border-gray-500" type="text" name="username" id="name" placeholder="username" required>
+        <input class="border-[1px] rounded-md p-1 border-gray-500" type="email" name="email" id="email" placeholder="email" required>
+        <input class="border-[1px] rounded-md p-1 border-gray-500" type="password" name="password" id="password" placeholder="password" required>
+        <input class="border-[1px] bg-slate-800 text-white rounded-md p-1 border-gray-500" type="submit" value="Register">
+    </form>
+    
+</body>
+<script>
+    const form = document.querySelector('form');
+    form.addEventListener('submit', async (e)=>{
+        e.preventDefault();
+        const username = document.querySelector('#name').value;
+        const email = document.querySelector('#email').value;
+        const password = document.querySelector('#password').value;
+        const payload = {username,email,password};
+        console.log(payload)
+        fetch('https://notes-now.onrender.com/users/register',{
+            method:'POST',  
+            headers:{
+                'Content-Type':'application/json'
+            },
+            body:JSON.stringify(payload),
+
+        }).then((res)=>{
+            return res.json();
+        }).then((data)=>{
+            console.log(data);
+            window.location.href = "./login.html"
+        }).catch((err)=>{
+            console.log(err);
+        })
+    })
+</script>
+</html>

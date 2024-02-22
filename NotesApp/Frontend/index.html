@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notes-Now</title>
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body class=" flex flex-col items-center justify-center w-full h-full">
+    <h1 class="font-bold  text-3xl font-mono text-slate-900 text-center">Notes-Now</h1>
+    <button class=" text-white bg-slate-800 rounded-md px-4 py-2 m-2" onclick="window.location.href = './newNote.html'">Add a new note</button>
+    <div class="container"></div>
+    <div id="login-modal" style="display: none;" >
+        <h1 class="font-bold text-3xl font-mono text-slate-900 text-center">Login</h1>
+
+        <form class="form border-2 border-slate-700 rounded-md w-60 gap-2 m-auto p-2 flex flex-col">
+            <input class="border-[1px] rounded-md p-1 border-gray-500" type="email" name="email" id="email" placeholder="email" required>
+            <input class="border-[1px] rounded-md p-1 border-gray-500" type="password" name="password" id="password" placeholder="password" required>
+            <input class="border-[1px] bg-slate-800 text-white rounded-md p-1 border-gray-500" type="submit" value="Login">
+            <button id="register-btn" class=" border-[1px] bg-slate-800 text-white rounded-md p-1 border-gray-500 text-center" >Register </button>
+        </form>
+        
+    </div>
+    <div id="register-modal" style="display:none;">
+        <h1 class="font-bold text-3xl font-mono text-slate-900 text-center">Register</h1>
+        <form id="register-form" class="form border-2 border-slate-700 rounded-md w-60 gap-2 m-auto p-2 flex flex-col">
+            <input class="border-[1px] rounded-md p-1 border-gray-500" type="text" name="username" id="name" placeholder="username" required>
+            <input class="border-[1px] rounded-md p-1 border-gray-500" type="email" name="email" id="remail" placeholder="email" required>
+            <input class="border-[1px] rounded-md p-1 border-gray-500" type="password" name="password" id="rpassword" placeholder="password" required>
+            <input class="border-[1px] bg-slate-800 text-white rounded-md p-1 border-gray-500" type="submit" value="Register">
+            <button class=" border-[1px] bg-slate-800 text-white rounded-md p-1 border-gray-500 text-center" id="login-btn" >Login</button>
+        </form>
+    
+    </div>
+    
+</body>
+<script>
+const loginModal = document.getElementById('login-modal');
+const registerModal = document.getElementById('register-modal');   
+
+const loginbtn =document.getElementById('login-btn');
+loginbtn.addEventListener('click',()=>{
+    loginModal.style.display = 'block';
+    registerModal.style.display = 'none';
+})
+
+if(!localStorage.getItem('token')){
+       loginModal.style.display = 'block'; 
+       
+    }
+    else{
+        loginModal.style.display = 'none';
+    }
+
+    const registerbtn =document.getElementById('register-btn');
+    registerbtn.addEventListener('click',()=>{
+        loginModal.style.display = 'none';
+        registerModal.style.display = 'block';
+        const registerForm = document.getElementById('register-form');
+        registerForm.addEventListener('submit', (e)=>{
+            e.preventDefault();
+            const username = document.querySelector('#name').value;
+            const email = document.querySelector('#remail').value;
+            const password = document.querySelector('#rpassword').value;
+            const payload = {username,email,password};
+            fetch('https://notes-now.onrender.com/users/register',{
+                method:'POST',
+                headers:{
+                    'Content-Type':'application/json'
+
+                },
+                body:JSON.stringify(payload)
+            }).then((res)=>{
+                return res.json();
+            }).then((data)=>{
+                console.log(data);
+                registerModal.style.display = 'none';
+                loginModal.style.display = 'inline';     
+            }).catch((err)=>{
+
+                console.log(err);
+                registerModal.style.display = 'none';
+                loginModal.style.display = 'inline';  
+            })
+
+        })
+    })
+    const loginForm = document.querySelector('form');
+    loginForm.addEventListener('submit', (e)=>{
+        e.preventDefault();
+        const email = document.querySelector('#email').value;
+        const password = document.querySelector('#password').value;
+        const payload = {email,password};
+        fetch('https://notes-now.onrender.com/users/login',{
+            method:'POST',
+            headers:{
+                'Content-Type':'application/json'
+
+            },
+            body:JSON.stringify(payload)
+        }).then((res)=>{
+            return res.json();
+        }).then((data)=>{
+            console.log(data);
+            localStorage.setItem('token',data.token)
+            loginModal.style.display = 'none';
+        })
+    })
+    function getNotes(){
+        fetch('https://notes-now.onrender.com/notes',{ method:'GET',
+        headers:{
+            'Content-Type':'application/json',
+            authorization:`Bearer ${localStorage.getItem('token')}`
+        }
+    }).then((res)=>{
+            return res.json();
+        }).then((data)=>{
+            console.log(data.notes)
+            displayNotes(data.notes)
+
+        }).catch((err)=>{
+            console.log(err);
+        })
+    } 
+    getNotes()
+
+    function deleteNote(id){
+        fetch(`https://notes-now.onrender.com/notes/${id}`,{
+            method:'DELETE',
+            headers:{
+                'Content-Type':'application/json',
+                authorization:`Bearer ${localStorage.getItem('token')}`
+            }
+        }).then((res)=>{
+            return res.json();
+        }).then((data)=>{
+            getNotes()
+            console.log(data);
+        }).catch((err)=>{
+            console.log(err);
+        })
+    }
+    function displayNotes(data){
+        const container = document.querySelector('.container');
+        container.innerHTML = '';
+        container.classList.add('bg-slate-100');
+        container.classList.add('flex-wrap');
+        container.classList.add('flex-col');
+        container.classList.add('flex');
+        container.classList.add('justify-center');
+        container.classList.add('w-full');
+        container.classList.add('h-full');
+        container.classList.add('gap-2');
+        container.classList.add('p-5');
+        container.classList.add('align-middle');
+        container.classList.add('text-center');
+        
+        data.forEach((note)=>{
+            const div = document.createElement('div');
+            div.classList.add('note');
+            div.classList.add('text-center');
+            div.classList.add('shadow-md');
+            div.classList.add('rounded-md');
+            div.classList.add('p-2');
+            div.classList.add('bg-white');
+            div.classList.add('align-middle');
+            div.innerHTML = ``;
+
+            const title = document.createElement('h1');
+            title.classList.add('text-xl');
+            title.classList.add('font-bold');
+            title.classList.add('text-slate-900');
+            title.classList.add('text-center');
+            title.innerText = note.title;   
+
+            const body = document.createElement('p');
+            body.classList.add('text-lg');
+            body.classList.add('text-slate-900');
+            body.classList.add('text-center');
+            body.classList.add('p-2');
+            body.classList.add('align-middle');
+            body.innerText = note.body;
+
+            const editBtn = document.createElement('button');
+            editBtn.innerHTML =`<svg fill="#ffffff" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="30px" height="30px" viewBox="0 0 494.936 494.936" xml:space="preserve"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <g> <path d="M389.844,182.85c-6.743,0-12.21,5.467-12.21,12.21v222.968c0,23.562-19.174,42.735-42.736,42.735H67.157 c-23.562,0-42.736-19.174-42.736-42.735V150.285c0-23.562,19.174-42.735,42.736-42.735h267.741c6.743,0,12.21-5.467,12.21-12.21 s-5.467-12.21-12.21-12.21H67.157C30.126,83.13,0,113.255,0,150.285v267.743c0,37.029,30.126,67.155,67.157,67.155h267.741 c37.03,0,67.156-30.126,67.156-67.155V195.061C402.054,188.318,396.587,182.85,389.844,182.85z"></path> <path d="M483.876,20.791c-14.72-14.72-38.669-14.714-53.377,0L221.352,229.944c-0.28,0.28-3.434,3.559-4.251,5.396l-28.963,65.069 c-2.057,4.619-1.056,10.027,2.521,13.6c2.337,2.336,5.461,3.576,8.639,3.576c1.675,0,3.362-0.346,4.96-1.057l65.07-28.963 c1.83-0.815,5.114-3.97,5.396-4.25L483.876,74.169c7.131-7.131,11.06-16.61,11.06-26.692 C494.936,37.396,491.007,27.915,483.876,20.791z M466.61,56.897L257.457,266.05c-0.035,0.036-0.055,0.078-0.089,0.107 l-33.989,15.131L238.51,247.3c0.03-0.036,0.071-0.055,0.107-0.09L447.765,38.058c5.038-5.039,13.819-5.033,18.846,0.005 c2.518,2.51,3.905,5.855,3.905,9.414C470.516,51.036,469.127,54.38,466.61,56.897z"></path> </g> </g> </g></svg>`
+            editBtn.classList.add('bg-slate-900');
+            editBtn.classList.add('text-white');
+            editBtn.classList.add('font-bold');
+            editBtn.classList.add('text-lg');
+            editBtn.classList.add('text-center');
+            editBtn.classList.add('py-2');
+            editBtn.classList.add('px-4');
+            editBtn.classList.add('m-2');
+            editBtn.classList.add('rounded-md');
+            editBtn.classList.add('align-middle');      
+
+            editBtn.addEventListener('click',()=>{
+                window.location.href = `./editNote.html?id=${note._id}`
+            })
+            const deleteBtn = document.createElement('button'); 
+            deleteBtn.innerHTML = '<svg fill="#B91C1C" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="30px" height="30px" viewBox="0 0 482.428 482.429" xml:space="preserve"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <g> <path d="M381.163,57.799h-75.094C302.323,25.316,274.686,0,241.214,0c-33.471,0-61.104,25.315-64.85,57.799h-75.098 c-30.39,0-55.111,24.728-55.111,55.117v2.828c0,23.223,14.46,43.1,34.83,51.199v260.369c0,30.39,24.724,55.117,55.112,55.117 h210.236c30.389,0,55.111-24.729,55.111-55.117V166.944c20.369-8.1,34.83-27.977,34.83-51.199v-2.828 C436.274,82.527,411.551,57.799,381.163,57.799z M241.214,26.139c19.037,0,34.927,13.645,38.443,31.66h-76.879 C206.293,39.783,222.184,26.139,241.214,26.139z M375.305,427.312c0,15.978-13,28.979-28.973,28.979H136.096 c-15.973,0-28.973-13.002-28.973-28.979V170.861h268.182V427.312z M410.135,115.744c0,15.978-13,28.979-28.973,28.979H101.266 c-15.973,0-28.973-13.001-28.973-28.979v-2.828c0-15.978,13-28.979,28.973-28.979h279.897c15.973,0,28.973,13.001,28.973,28.979 V115.744z"></path> <path d="M171.144,422.863c7.218,0,13.069-5.853,13.069-13.068V262.641c0-7.216-5.852-13.07-13.069-13.07 c-7.217,0-13.069,5.854-13.069,13.07v147.154C158.074,417.012,163.926,422.863,171.144,422.863z"></path> <path d="M241.214,422.863c7.218,0,13.07-5.853,13.07-13.068V262.641c0-7.216-5.854-13.07-13.07-13.07 c-7.217,0-13.069,5.854-13.069,13.07v147.154C228.145,417.012,233.996,422.863,241.214,422.863z"></path> <path d="M311.284,422.863c7.217,0,13.068-5.853,13.068-13.068V262.641c0-7.216-5.852-13.07-13.068-13.07 c-7.219,0-13.07,5.854-13.07,13.07v147.154C298.213,417.012,304.067,422.863,311.284,422.863z"></path> </g> </g> </g></svg>';
+
+            deleteBtn.classList.add('bg-slate-900');
+            deleteBtn.classList.add('text-white');
+            deleteBtn.classList.add('font-bold');
+            deleteBtn.classList.add('text-lg');
+            deleteBtn.classList.add('text-center');
+            deleteBtn.classList.add('p-2');
+            deleteBtn.classList.add('rounded-md');
+            deleteBtn.classList.add('align-middle');
+
+            deleteBtn.addEventListener('click',()=>{
+                deleteNote(note._id)
+            })
+
+            div.append(title,body, editBtn ,deleteBtn);
+            container.append(div);
+        })
+    }
+</script>
+</html>
